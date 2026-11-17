@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 results/later_run_predictions_*.csv
+results_run.log
