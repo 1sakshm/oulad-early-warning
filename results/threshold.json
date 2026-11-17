@@ -1,0 +1,202 @@
+{
+  "day14": {
+    "threshold": 0.6584,
+    "flag_rate": 0.6036,
+    "missed_at_risk": 0.2487,
+    "passing_flagged": 0.5016,
+    "groups": {
+      "gender": {
+        "F": {
+          "n": 5619,
+          "missed_at_risk": 0.2574,
+          "passing_flagged": 0.5182
+        },
+        "M": {
+          "n": 6091,
+          "missed_at_risk": 0.241,
+          "passing_flagged": 0.486
+        },
+        "missed_gap": {
+          "which": "M minus F",
+          "gap": -0.0164,
+          "ci": [
+            -0.0434,
+            0.0081
+          ]
+        }
+      },
+      "age_band": {
+        "0-35": {
+          "n": 8187,
+          "missed_at_risk": 0.2254,
+          "passing_flagged": 0.5361
+        },
+        "35+": {
+          "n": 3523,
+          "missed_at_risk": 0.3138,
+          "passing_flagged": 0.4303
+        },
+        "missed_gap": {
+          "which": "35+ minus 0-35",
+          "gap": 0.0883,
+          "ci": [
+            0.0573,
+            0.1151
+          ]
+        }
+      },
+      "imd_quintile": {
+        "0-20%": {
+          "n": 2371,
+          "missed_at_risk": 0.2334,
+          "passing_flagged": 0.5071
+        },
+        "20-40%": {
+          "n": 2591,
+          "missed_at_risk": 0.2417,
+          "passing_flagged": 0.5142
+        },
+        "40-60%": {
+          "n": 2321,
+          "missed_at_risk": 0.2508,
+          "passing_flagged": 0.524
+        },
+        "60-80%": {
+          "n": 2136,
+          "missed_at_risk": 0.2855,
+          "passing_flagged": 0.4793
+        },
+        "80-100%": {
+          "n": 1924,
+          "missed_at_risk": 0.2345,
+          "passing_flagged": 0.4969
+        },
+        "unknown": {
+          "n": 367,
+          "missed_at_risk": 0.2826,
+          "passing_flagged": 0.4291
+        }
+      },
+      "disability": {
+        "N": {
+          "n": 10594,
+          "missed_at_risk": 0.2514,
+          "passing_flagged": 0.4985
+        },
+        "Y": {
+          "n": 1116,
+          "missed_at_risk": 0.23,
+          "passing_flagged": 0.5388
+        },
+        "missed_gap": {
+          "which": "Y minus N",
+          "gap": -0.0214,
+          "ci": [
+            -0.0571,
+            0.0174
+          ]
+        }
+      }
+    }
+  },
+  "day28": {
+    "threshold": 0.684,
+    "flag_rate": 0.6352,
+    "missed_at_risk": 0.1984,
+    "passing_flagged": 0.5232,
+    "groups": {
+      "gender": {
+        "F": {
+          "n": 5561,
+          "missed_at_risk": 0.1909,
+          "passing_flagged": 0.5713
+        },
+        "M": {
+          "n": 6031,
+          "missed_at_risk": 0.2051,
+          "passing_flagged": 0.478
+        },
+        "missed_gap": {
+          "which": "M minus F",
+          "gap": 0.0142,
+          "ci": [
+            -0.008,
+            0.0376
+          ]
+        }
+      },
+      "age_band": {
+        "0-35": {
+          "n": 8092,
+          "missed_at_risk": 0.1786,
+          "passing_flagged": 0.5529
+        },
+        "35+": {
+          "n": 3500,
+          "missed_at_risk": 0.2532,
+          "passing_flagged": 0.462
+        },
+        "missed_gap": {
+          "which": "35+ minus 0-35",
+          "gap": 0.0746,
+          "ci": [
+            0.0488,
+            0.1041
+          ]
+        }
+      },
+      "imd_quintile": {
+        "0-20%": {
+          "n": 2344,
+          "missed_at_risk": 0.179,
+          "passing_flagged": 0.5423
+        },
+        "20-40%": {
+          "n": 2559,
+          "missed_at_risk": 0.2127,
+          "passing_flagged": 0.5356
+        },
+        "40-60%": {
+          "n": 2301,
+          "missed_at_risk": 0.1788,
+          "passing_flagged": 0.5443
+        },
+        "60-80%": {
+          "n": 2116,
+          "missed_at_risk": 0.2249,
+          "passing_flagged": 0.4883
+        },
+        "80-100%": {
+          "n": 1907,
+          "missed_at_risk": 0.1993,
+          "passing_flagged": 0.5237
+        },
+        "unknown": {
+          "n": 365,
+          "missed_at_risk": 0.2333,
+          "passing_flagged": 0.4364
+        }
+      },
+      "disability": {
+        "N": {
+          "n": 10486,
+          "missed_at_risk": 0.1992,
+          "passing_flagged": 0.5186
+        },
+        "Y": {
+          "n": 1106,
+          "missed_at_risk": 0.1927,
+          "passing_flagged": 0.5792
+        },
+        "missed_gap": {
+          "which": "Y minus N",
+          "gap": -0.0065,
+          "ci": [
+            -0.0402,
+            0.0277
+          ]
+        }
+      }
+    }
+  }
+}

@@ -43,6 +43,19 @@ Full tables: [results/RESULTS.md](results/RESULTS.md). Numbers: [results/summary
 
 ![AUROC by group, day 14](results/auroc_by_group_day14.png)
 
+### Post hoc: a threshold chosen from the training data
+
+Added after seeing the results above, and labelled so in the deviation log. The threshold is set on out-of-fold
+training predictions so that 80 % of at-risk training students would be flagged, then applied unchanged to the
+later run ([src/oulad/threshold.py](src/oulad/threshold.py), [results/threshold.json](results/threshold.json)).
+
+* **Day 14:** 25 % of at-risk students are missed (aimed at 20 %: the later run costs here too), but 60 % of all
+  students are flagged, including half of those who go on to pass. Two weeks of clicks cannot separate them well.
+* **The gender gap in missed students disappears** (−0.016 [−0.043, 0.008]), so it came from the 0.5 threshold.
+* **The age gap does not:** 31 % of at-risk students over 35 are missed vs 23 % under 35 (gap 0.088
+  [0.057, 0.115]); at day 28, 25 % vs 18 %. Older students who are going to fail or withdraw look more like
+  students who pass in their early clicks, whatever the threshold.
+
 ## Limitations
 
 * **One institution, one pair of years.** The Open University in 2013–2014. "Later run" means one year later, with
@@ -64,6 +77,7 @@ cd src
 python -m oulad.features   # feature tables for days 14 and 28 (about 30 s)
 python -m oulad.run        # all models, splits and bootstraps (about 15 min on a laptop CPU)
 python -m oulad.report     # results/RESULTS.md and the figures
+python -m oulad.threshold  # post hoc threshold analysis (about 1 min)
 ```
 
 ## Licence
