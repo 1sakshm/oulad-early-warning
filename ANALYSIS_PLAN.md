@@ -97,4 +97,6 @@ H2 is reported as it is.
 
 | Date | Change | Reason |
 |------|--------|--------|
-| | | |
+| 2026-11-17 | Data downloaded from the UCI Machine Learning Repository mirror (dataset 349) instead of the Open University site. Checksums in `data/SHA256SUMS.txt`. | The Open University download link now returns 404. The UCI copy has the same seven tables. |
+| 2026-11-17 | Assessment scores are used only for computer-marked assessments (CMA) submitted before day *c*. For tutor-marked ones (TMA), only "submitted" and "days late" are used. Banked results from earlier attempts are ignored. | OULAD does not say when a TMA was marked, so its score may not have been known on day *c*. Decided before any model was fitted. |
+| 2026-11-17 | Activity "up to day *c*" means clicks dated before day *c*; a student is excluded if `date_unregistration` ≤ *c*. Missing `date_registration` (45 rows) is filled with the training median plus a missing flag. | Makes the plan's wording exact. Decided before any model was fitted. |
