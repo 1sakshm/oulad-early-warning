@@ -4,6 +4,8 @@
 later run of the course rather than on a random split of the same students? And is it equally accurate for every
 group of students?
 
+**Interactive write-up: [oulad-early-warning.pages.dev](https://oulad-early-warning.pages.dev)**
+
 Data: OULAD, the Open University Learning Analytics Dataset (Kuzilek et al., 2017), CC BY 4.0. The analysis plan
 ([ANALYSIS_PLAN.md](ANALYSIS_PLAN.md)) was committed before the data was downloaded; every change since is in its
 deviation log.
@@ -78,6 +80,7 @@ python -m oulad.features   # feature tables for days 14 and 28 (about 30 s)
 python -m oulad.run        # all models, splits and bootstraps (about 15 min on a laptop CPU)
 python -m oulad.report     # results/RESULTS.md and the figures
 python -m oulad.threshold  # post hoc threshold analysis (about 1 min)
+cd .. && python site/build.py  # rebuild the website from the result files
 ```
 
 ## Licence
