@@ -97,7 +97,7 @@ const scrolly = (function () {
     return { x, y, r: sp * 0.36 };
   }
   function histLayout(byAge) {
-    const top = 54, bot = 46, side = 30, aw = W - 2 * side;
+    const top = 54, bot = 80, side = 30, aw = W - 2 * side;
     const bins = 40, cw = aw / bins;
     const rows = byAge ? [0, 1] : [null];
     const rowH = (H - top - bot) / rows.length;
@@ -160,15 +160,17 @@ const scrolly = (function () {
         }
       }
       ctx.fillStyle = muted; ctx.font = "12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
-      const by = H - 18;
-      [0, 0.25, 0.5, 0.75, 1].forEach(v => ctx.fillText(v.toFixed(2), L.side + v * L.aw, by));
-      ctx.textAlign = "left"; ctx.fillText("predicted chance of passing →", L.side, by + 14 > H - 2 ? by - 14 : by + 14);
+      // tick labels sit just under the axis; the caption shares the bottom line with the dot note (right)
+      const by = H - 58;
+      [0, 0.25, 0.5, 0.75, 1].forEach((v, k) => { ctx.textAlign = k === 0 ? "left" : k === 4 ? "right" : "center"; ctx.fillText(v.toFixed(2), L.side + v * L.aw, by); });
+      ctx.textAlign = "left";
+      if (W > 560) ctx.fillText("predicted chance of passing →", L.side, H - 16);
     }
     if (showT) {
       const tx = L.side + cur.t * L.aw;
       ctx.globalAlpha = cur.tA;
-      ctx.fillStyle = rgba(s2, 0.08); ctx.fillRect(L.side, 44, tx - L.side, H - 44 - 40);
-      ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tx, 40); ctx.lineTo(tx, H - 38); ctx.stroke();
+      ctx.fillStyle = rgba(s2, 0.08); ctx.fillRect(L.side, 44, tx - L.side, H - 80 - 44);
+      ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tx, 40); ctx.lineTo(tx, H - 76); ctx.stroke();
       ctx.fillStyle = ink; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tx - 24, 30, 48, 20, 10) : ctx.rect(tx - 24, 30, 48, 20); ctx.fill();
       ctx.fillStyle = surface; ctx.font = "600 12px Inter, system-ui"; ctx.textAlign = "center"; ctx.fillText(cur.t.toFixed(2), tx, 44);
       ctx.textAlign = "left"; ctx.fillStyle = ink2; ctx.font = "12px Inter, system-ui";
