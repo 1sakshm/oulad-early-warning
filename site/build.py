@@ -47,7 +47,9 @@ def main():
     for c in (14, 28):
         kept = len(pd.read_pickle(ROOT / "data" / "processed" / f"features_day{c}.pkl"))
         counts[f"day{c}"] = {"enrolments": total, "kept": kept, "excluded": total - kept}
-    data = {"summary": summary, "threshold": threshold, "curves_day14": curves(pred), "counts": counts}
+    describe = json.loads((RES / "describe.json").read_text())
+    data = {"summary": summary, "threshold": threshold, "curves_day14": curves(pred), "counts": counts,
+            "describe": describe}
     html = (ROOT / "site" / "template.html").read_text(encoding="utf8")
     html = html.replace("/*__DATA__*/null", json.dumps(data, separators=(",", ":")))
     (ROOT / "site" / "index.html").write_text(html, encoding="utf8")

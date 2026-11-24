@@ -80,7 +80,8 @@ python -m oulad.features   # feature tables for days 14 and 28 (about 30 s)
 python -m oulad.run        # all models, splits and bootstraps (about 15 min on a laptop CPU)
 python -m oulad.report     # results/RESULTS.md and the figures
 python -m oulad.threshold  # post hoc threshold analysis (about 1 min)
-cd .. && python site/build.py  # rebuild the website from the result files
+python -m oulad.describe   # descriptive numbers for the website
+cd .. && python site/assemble.py && python site/build.py  # rebuild the website
 ```
 
 ## Licence

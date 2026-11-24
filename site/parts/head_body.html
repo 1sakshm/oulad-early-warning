@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Gets Missed?</title>
+<meta name="description" content="2,000 real students, one early-warning model, and the students it misses. Trained on 2013 Open University courses, tested on 2014 students it had never seen.">
+<meta name="author" content="Saksham Sharma">
+<meta property="og:title" content="Who gets missed?">
+<meta property="og:description" content="An early-warning model trained on one year of students and tested on the next. Who does it miss?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1726'/%3E%3Ccircle cx='11' cy='16' r='4.5' fill='%233987e5'/%3E%3Ccircle cx='21' cy='16' r='4.5' fill='none' stroke='%23eb6834' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>try{const t=localStorage.getItem("oulad-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+/* Layout: a dark hero band, a sticky scroll-driven dot chart, then a single reading column of charts */
+:root{
+  color-scheme:light;
+  --page:#f3f5f9;--surface:#ffffff;--raise:#ffffff;
+  --ink:#0d1726;--ink2:#46516a;--muted:#7f889b;
+  --grid:#e3e7ef;--axis:#c3cad7;--border:rgba(13,23,38,.10);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--neg:#e34948;
+  --wash1:rgba(42,120,214,.10);--wash2:rgba(235,104,52,.11);
+  --band:#0d1726;--band-ink:#eef2f8;--band-ink2:#a9b4c8;--band-line:rgba(255,255,255,.12);
+  --shadow:0 1px 2px rgba(13,23,38,.05),0 10px 30px rgba(13,23,38,.07);
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --page:#0a0f17;--surface:#111925;--raise:#18212f;
+  --ink:#e9eef6;--ink2:#b2bccd;--muted:#7f8aa0;
+  --grid:#1e2837;--axis:#344059;--border:rgba(255,255,255,.09);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--neg:#e66767;
+  --wash1:rgba(57,135,229,.15);--wash2:rgba(217,89,38,.15);
+  --band:#060a10;--band-line:rgba(255,255,255,.08);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0a0f17;--surface:#111925;--raise:#18212f;
+  --ink:#e9eef6;--ink2:#b2bccd;--muted:#7f8aa0;
+  --grid:#1e2837;--axis:#344059;--border:rgba(255,255,255,.09);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--neg:#e66767;
+  --wash1:rgba(57,135,229,.15);--wash2:rgba(217,89,38,.15);
+  --band:#060a10;--band-line:rgba(255,255,255,.08);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--page);color:var(--ink);font:16px/1.65 var(--body);-webkit-font-smoothing:antialiased}
+a{color:var(--s1);text-underline-offset:3px}
+code,pre{font-family:var(--mono);font-size:.86em}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media (max-width:600px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+h1,h2,h3{font-family:var(--display);text-wrap:balance}
+
+/* nav */
+header.top{position:fixed;inset:0 0 auto;z-index:30;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.top.solid{background:color-mix(in srgb,var(--page) 85%,transparent);backdrop-filter:blur(14px);border-color:var(--border)}
+header.top .wrap{display:flex;align-items:center;gap:22px;height:58px}
+.brand{font:700 17px var(--display);color:var(--band-ink);text-decoration:none;white-space:nowrap;letter-spacing:-.01em}
+header.top.solid .brand{color:var(--ink)}
+nav.links{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;flex:1}
+nav.links a{color:var(--band-ink2);text-decoration:none;font-size:14px;white-space:nowrap}
+header.top.solid nav.links a{color:var(--ink2)}
+nav.links a:hover,nav.links a.on{color:var(--band-ink)}
+header.top.solid nav.links a:hover,header.top.solid nav.links a.on{color:var(--ink)}
+.theme{border:1px solid var(--band-line);background:transparent;color:var(--band-ink2);border-radius:999px;width:34px;height:34px;cursor:pointer;flex:none;display:grid;place-items:center}
+header.top.solid .theme{border-color:var(--border);color:var(--ink2)}
+.progress{position:absolute;left:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--s1),var(--s2));width:0}
+@media (max-width:760px){nav.links{display:none}}
+
+/* hero band */
+.hero{position:relative;background:var(--band);color:var(--band-ink);overflow:hidden;padding:130px 0 70px}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
+.hero .wrap{position:relative}
+.eyebrow{font:500 12.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--band-ink2)}
+.hero h1{font-size:clamp(52px,10vw,124px);line-height:.92;letter-spacing:-.045em;margin:18px 0 22px;font-weight:800}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--s1),var(--s2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:clamp(18px,2.3vw,22px);color:var(--band-ink2);max-width:640px;margin:0}
+.hero .lede b{color:var(--band-ink);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:54px;background:var(--band-line);border:1px solid var(--band-line);border-radius:var(--r);overflow:hidden;max-width:900px}
+.stat{background:color-mix(in srgb,var(--band) 88%,transparent);padding:20px 22px;backdrop-filter:blur(4px)}
+.stat .v{font:700 clamp(30px,4.4vw,46px)/1 var(--display);letter-spacing:-.02em}
+.stat .k{font-size:14px;color:var(--band-ink2);margin-top:8px}
+.stat .k b{color:var(--band-ink);font-weight:600}
+@media (max-width:720px){.stats{grid-template-columns:1fr}}
+.scroll-cue{display:inline-flex;align-items:center;gap:10px;margin-top:38px;color:var(--band-ink2);font:500 13px var(--mono);text-decoration:none}
+.scroll-cue span{display:inline-block;width:22px;height:34px;border:1.5px solid var(--band-ink2);border-radius:12px;position:relative}
+.scroll-cue span::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:7px;margin-left:-2px;border-radius:2px;background:var(--band-ink2);animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{0%{opacity:0;transform:translateY(-2px)}40%{opacity:1}100%{opacity:0;transform:translateY(10px)}}
+
+/* sections */
+section{padding:96px 0 10px}
+.kicker{font:500 12.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--s1)}
+h2{font-size:clamp(30px,4.6vw,48px);letter-spacing:-.03em;line-height:1.05;margin:10px 0 16px;font-weight:700;max-width:860px}
+h3{font-size:22px;margin:44px 0 8px;letter-spacing:-.015em;font-weight:700}
+.intro{font-size:19px;color:var(--ink2);max-width:720px;margin:0 0 28px}
+p{max-width:720px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.callout{border-left:3px solid var(--s1);background:var(--wash1);padding:14px 18px;border-radius:0 12px 12px 0;margin:22px 0;max-width:760px}
+.callout.warm{border-color:var(--s2);background:var(--wash2)}
+.callout p{margin:0}
+.big-quote{font:600 clamp(22px,3vw,30px)/1.3 var(--display);letter-spacing:-.015em;max-width:820px;margin:30px 0}
+.big-quote .o{color:var(--s2)}.big-quote .b{color:var(--s1)}
+
+/* scrollytelling */
+.scrolly{position:relative;display:grid;grid-template-columns:minmax(280px,.8fr) 1.2fr;gap:40px;margin-top:20px}
+.steps-col{position:relative;z-index:2}
+.step{min-height:85vh;display:flex;align-items:center}
+.step:first-child{min-height:60vh}
+.step:last-child{min-height:95vh}
+.step .box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow);max-width:420px;opacity:.35;transition:opacity .4s}
+.step.on .box{opacity:1}
+.step .n{font:500 12px var(--mono);color:var(--muted);letter-spacing:.06em}
+.step h4{font:700 22px/1.2 var(--display);margin:6px 0 8px;letter-spacing:-.01em}
+.step p{margin:0;color:var(--ink2);font-size:15.5px}
+.step .fig{font:700 34px var(--display);letter-spacing:-.02em;display:block;margin-top:8px}
+.graphic{position:sticky;top:80px;height:calc(100vh - 110px);max-height:720px;align-self:start}
+.graphic .frame{position:relative;height:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+#unitCanvas{position:absolute;inset:0;width:100%;height:100%}
+.glegend{position:absolute;left:16px;top:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);z-index:1;pointer-events:none}
+.gnote{position:absolute;right:14px;bottom:10px;font:400 11.5px var(--mono);color:var(--muted);pointer-events:none}
+@media (max-width:860px){
+  .scrolly{grid-template-columns:1fr}
+  .graphic{grid-row:1;grid-column:1;top:66px;height:58vh;z-index:1}
+  .steps-col{grid-row:1;grid-column:1;margin-top:60vh}
+  .step{min-height:80vh;align-items:flex-end}
+  .step .box{opacity:.96}
+}
+
+/* charts */
+.chart{margin:8px 0 0}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.chart-title{font:700 17px var(--display);letter-spacing:-.01em}
+.chart-sub{color:var(--ink2);font-size:14px;max-width:640px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--ink2);margin-top:6px}
+.key{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.dotkey{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:3px;background:var(--page)}
+.seg button{border:0;background:transparent;color:var(--ink2);font:600 13px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg button:focus-visible,.snap:focus-visible,.theme:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lbl{fill:var(--ink2);font-size:13px;font-family:var(--body)}
+.lbl-strong{fill:var(--ink);font-size:13px;font-weight:650;font-family:var(--body)}
+.lbl-muted{fill:var(--muted);font-size:12px;font-family:var(--mono)}
+.grid line{stroke:var(--grid);stroke-width:1}
+.base{stroke:var(--axis);stroke-width:1}
+.hit{fill:transparent;cursor:default}
+.mark:focus{outline:none}
+.mark:focus-visible .hl,.mark:hover .hl{stroke:var(--ink);stroke-width:1.5}
+details.tv{margin-top:14px;font-size:14px}
+details.tv summary{cursor:pointer;color:var(--ink2)}
+table{border-collapse:collapse;width:100%;margin-top:10px;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--grid)}
+th{color:var(--ink2);font-weight:600}
+.tblwrap{overflow-x:auto}
+.seg-bar{display:flex;gap:2px;height:28px;margin:14px 0 8px}
+.seg-bar div{border-radius:4px;display:flex;align-items:center;padding-left:8px;font:600 12.5px var(--body);white-space:nowrap;overflow:hidden;transition:flex-grow 1s cubic-bezier(.2,.8,.2,1)}
+@media (max-width:640px){
+  .chart{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -8px;padding:0 8px}
+  .chart svg{min-width:600px}
+  .chart::after{content:"Scroll sideways to see the whole chart";display:block;font-size:12px;color:var(--muted);padding-top:4px;position:sticky;left:0}
+  .card{padding:16px}
+}
+
+/* tooltip */
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--raise);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:9px 12px;font-size:13px;min-width:140px;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+#tip.on{opacity:1;transform:none}
+#tip .tt{color:var(--ink2);font-size:12.5px;margin-bottom:4px}
+#tip .row{display:flex;align-items:center;gap:8px;white-space:nowrap}
+#tip .row b{font-weight:650;color:var(--ink)}
+#tip .row span{color:var(--ink2)}
+
+/* diagrams */
+.diagram text{font-family:var(--body)}
+.box{fill:var(--page);stroke:var(--border);stroke-width:1}
+.node{fill:var(--surface);stroke:var(--border)}
+.flow{fill:none;stroke:var(--axis);stroke-width:1.5}
+.flow.live{stroke:var(--s1);stroke-dasharray:3 7;animation:flow 1.6s linear infinite;opacity:.8}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.student{transition:transform .9s cubic-bezier(.2,.8,.2,1),opacity .6s}
+
+/* threshold explorer */
+.readouts{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0 4px}
+@media (max-width:820px){.readouts{grid-template-columns:repeat(2,1fr)}}
+.ro{background:var(--page);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.ro .k{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.ro .v{font:700 26px var(--display);letter-spacing:-.01em}
+input[type=range]{width:100%;accent-color:var(--s1);margin:6px 0}
+.snap{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13px var(--body);cursor:pointer}
+.snap:hover{border-color:var(--s1)}
+
+/* limits, reproduce */
+.limits{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.limit h4{margin:0 0 6px;font:700 16px var(--display)}
+.limit p{margin:0;color:var(--ink2);font-size:14.5px}
+.steps-list{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:12px;max-width:760px}
+.steps-list li{counter-increment:s;position:relative;padding-left:44px}
+.steps-list li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);display:grid;place-items:center;font:600 13px var(--mono);color:var(--ink2);background:var(--surface)}
+pre.code{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;overflow-x:auto;position:relative;line-height:1.6}
+.copy{position:absolute;top:10px;right:10px;border:1px solid var(--border);background:var(--page);color:var(--ink2);border-radius:8px;padding:4px 10px;font:600 12px var(--body);cursor:pointer}
+footer{border-top:1px solid var(--border);margin-top:90px;padding:30px 0 50px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* reveal: only blocks below the first screen start hidden */
+.reveal.pending{opacity:0;transform:translateY(18px)}
+.reveal{transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal,.reveal.pending{opacity:1;transform:none;transition:none}
+  .student{transition:none}
+  .flow.live,.scroll-cue span::after{animation:none}
+  .seg-bar div{transition:none}
+}
+</style>
+</head>
+<body>
+<header class="top" id="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top">Who gets missed?</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#story">The story</a><a href="#clicks">Clicks</a><a href="#model">Model</a><a href="#results">Results</a>
+      <a href="#groups">Groups</a><a href="#threshold">Try it</a><a href="#method">Method</a><a href="#limits">Limits</a>
+    </nav>
+    <button class="theme" id="themeBtn" aria-label="Switch light or dark theme" title="Switch theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<div class="hero" id="top">
+  <canvas id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Early-warning models · Open University · 2013 → 2014</div>
+    <h1>Who gets<br><em>missed?</em></h1>
+    <p class="lede">A model learns from one year of students and is tested on the next year's, people it has never seen. It is supposed to flag the students who will fail or drop out. <b>It misses older students more often, and a better threshold doesn't fix that.</b></p>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sOlder">–</div><div class="k">of at-risk students <b>over 35</b> missed</div></div>
+      <div class="stat"><div class="v" id="sYounger">–</div><div class="k">of at-risk students <b>under 35</b> missed</div></div>
+      <div class="stat"><div class="v" id="sN">–</div><div class="k">students tested, <b>none</b> seen in training</div></div>
+    </div>
+    <a class="scroll-cue" href="#story"><span></span>Scroll to follow 2,000 of them</a>
+  </div>
+</div>
+
+<main>
+<div class="wrap">
+
+<!-- STORY -->
+<section id="story">
+  <div class="kicker">The story</div>
+  <h2>Follow 2,000 real students through the model</h2>
+  <p class="intro">Each dot is one student from a 2014 course, drawn at random from the test set. Percentages in the text are from all test students.</p>
+  <div class="scrolly">
+    <div class="steps-col">
+      <div class="step" data-step="0"><div class="box"><div class="n">1 / 6</div><h4>Students in a 2014 course</h4><p>They signed up for one of six Open University modules. The model has never seen any of them: it was trained on the 2013 courses.</p><span class="fig" id="st0"></span></div></div>
+      <div class="step" data-step="1"><div class="box"><div class="n">2 / 6</div><h4>Most pass. Many don't.</h4><p><span class="dotkey" style="background:var(--s1)"></span>Passed or passed with distinction. <span class="dotkey" style="background:var(--s2)"></span>Failed or withdrew. This is what the model is trying to predict.</p><span class="fig" id="st1"></span></div></div>
+      <div class="step" data-step="2"><div class="box"><div class="n">3 / 6</div><h4>Two weeks in, the model guesses</h4><p>Each student gets a predicted chance of passing, from their clicks, submissions and registration in the first 14 days. Further right means more likely to pass. The two colours overlap a lot.</p><span class="fig" id="st2"></span></div></div>
+      <div class="step" data-step="3"><div class="box"><div class="n">4 / 6</div><h4>Flag everyone below 0.50</h4><p>That was the plan, fixed in advance. Ringed dots are students who went on to fail or withdraw but were not flagged.</p><span class="fig" id="st3"></span></div></div>
+      <div class="step" data-step="4"><div class="box"><div class="n">5 / 6</div><h4>Move the line</h4><p>A threshold chosen on the 2013 training data flags many more students. Fewer at-risk students are missed, but many students who would have passed get flagged too.</p><span class="fig" id="st4"></span></div></div>
+      <div class="step" data-step="5"><div class="box"><div class="n">6 / 6</div><h4>Now split by age</h4><p>Same model, same threshold. Students over 35 who are going to fail or withdraw are missed more often. In their first two weeks they click more than at-risk younger students, which may be why the model reads them as safer.</p><span class="fig" id="st5"></span></div></div>
+    </div>
+    <div class="graphic" aria-hidden="true">
+      <div class="frame">
+        <div class="glegend" id="glegend"></div>
+        <canvas id="unitCanvas"></canvas>
+        <div class="gnote">1 dot = 1 student · random 2,000 of the test set</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLICKS -->
+<section id="clicks">
+  <div class="kicker">What the model sees</div>
+  <h2>Clicks tell part of the story, and age changes how much</h2>
+  <p class="intro">Mean clicks per student per day on the course website, for students still registered on day 28. Day 0 is the first day of the course. The model sees only the days before its cutoff.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">Daily clicks, two weeks before to four weeks after the start</div><div class="chart-sub">Hover for values. The shaded band is what a day-14 model sees after the course starts.</div></div>
+    </div>
+    <div class="legend"><span><span class="key" style="background:var(--s1)"></span>Passed</span><span><span class="key" style="background:var(--s2)"></span>Failed or withdrew</span></div>
+    <div class="chart"><svg id="clickSvg" viewBox="0 0 760 300" role="img" aria-label="Daily clicks by outcome, in two panels by age"></svg></div>
+  </div>
+  <p class="big-quote reveal" id="clickQuote"></p>
+  <div class="card reveal">
+    <div class="chart-head"><div><div class="chart-title">Mean clicks a day in the first two weeks</div><div class="chart-sub">Days 0 to 13, by outcome and age band.</div></div></div>
+    <div class="chart"><svg id="clickBars" viewBox="0 0 760 200" role="img" aria-label="Mean daily clicks in the first two weeks by outcome and age"></svg></div>
+    <div class="legend"><span><span class="dotkey" style="background:var(--s1);border-radius:3px"></span>Passed</span><span><span class="dotkey" style="background:var(--s2);border-radius:3px"></span>Failed or withdrew</span></div>
+  </div>
+
+  <h3>Many leave before the course even starts</h3>
+  <p>Withdrawals by the day the student unregistered, in 20-day bins. Students who left on or before the cutoff are removed from the test: there is nothing left to predict for them.</p>
+  <div class="card reveal">
+    <div class="chart"><svg id="wdSvg" viewBox="0 0 760 250" role="img" aria-label="Histogram of withdrawal days"></svg></div>
+  </div>
+
+  <h3>Who the students are</h3>
+  <div class="card reveal">
+    <div class="chart-title">Final results of all <span id="outN"></span> enrolments</div>
+    <div class="seg-bar" id="outBar" role="img" aria-label="Share of final results"></div>
+    <div class="legend" id="outLegend"></div>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section id="model">
+  <div class="kicker">Inside the model</div>
+  <h2>What the model relies on, and where it works best</h2>
+  <p class="intro">Shuffle one group of inputs across students and see how much accuracy the gradient-boosted model loses. The bigger the drop, the more it leans on that input. Day 14, later run.</p>
+  <div class="card reveal">
+    <div class="chart-head"><div><div class="chart-title">AUROC lost when an input group is shuffled</div><div class="chart-sub">Mean of 5 shuffles. A descriptive look, added after the planned analysis.</div></div></div>
+    <div class="chart"><svg id="impSvg" viewBox="0 0 760 380" role="img" aria-label="Grouped permutation importance"></svg></div>
+  </div>
+  <h3>Accuracy differs a lot between courses</h3>
+  <p>Later-run AUROC per module, day 14. The hairline is the model's AUROC on all test students.</p>
+  <div class="card reveal">
+    <div class="chart"><svg id="modSvg" viewBox="0 0 760 270" role="img" aria-label="AUROC per module"></svg></div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="kicker">Results</div>
+  <h2>The random split overstates accuracy, but only a little</h2>
+  <p class="intro">Every model loses about 0.01 to 0.02 AUROC when tested on next year's students. The drop is real (its 95% interval stays above zero for every model) but small. The bigger story is how weak early prediction is: no model reaches 0.75.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">AUROC by model: random split vs later run</div><div class="chart-sub">Whiskers show the 95% interval (later run) and the range over 5 seeds (random split).</div></div>
+      <div class="seg" role="group" aria-label="Cutoff day"><button data-db="14" aria-pressed="true">Day 14</button><button data-db="28" aria-pressed="false">Day 28</button></div>
+    </div>
+    <div class="legend"><span><span class="dotkey" style="background:var(--s2)"></span>Random split (mean of 5)</span><span><span class="dotkey" style="background:var(--s1)"></span>Later run (95% interval)</span></div>
+    <div class="chart"><svg id="dbSvg" viewBox="0 0 760 300" role="img" aria-label="Dumbbell chart of AUROC by model and split"></svg></div>
+    <details class="tv"><summary>Show as a table</summary><div class="tblwrap" id="dbTable"></div></details>
+  </div>
+  <h3>What moves accuracy, and by how much</h3>
+  <p>Changes in later-run AUROC at day 14, except the first, which compares day 28 with day 14 on the same students. Waiting two more weeks is worth more than any model change.</p>
+  <div class="card reveal">
+    <div class="chart"><svg id="divSvg" viewBox="0 0 760 250" role="img" aria-label="Diverging bar chart of what changes AUROC"></svg></div>
+    <div class="legend"><span><span class="dotkey" style="background:var(--s1);border-radius:3px"></span>Raises AUROC</span><span><span class="dotkey" style="background:var(--neg);border-radius:3px"></span>Lowers AUROC</span></div>
+  </div>
+</section>
+
+<!-- GROUPS -->
+<section id="groups">
+  <div class="kicker">Groups</div>
+  <h2>The same model is less accurate for some students</h2>
+  <p class="intro">AUROC within each group, on the later run. The model ranks women less accurately than men at both cutoffs. Older students are ranked about as well as younger ones, but more of them are missed.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">Later-run AUROC by group</div><div class="chart-sub">The hairline marks the model's AUROC on all test students. Gaps are largest minus smallest, with 95% intervals.</div></div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Model"><button data-gm="boosted" aria-pressed="true">Boosted</button><button data-gm="logistic" aria-pressed="false">Logistic</button><button data-gm="gru" aria-pressed="false">GRU</button></div>
+        <div class="seg" role="group" aria-label="Cutoff day"><button data-gd="14" aria-pressed="true">Day 14</button><button data-gd="28" aria-pressed="false">Day 28</button></div>
+      </div>
+    </div>
+    <div class="chart"><svg id="grpSvg" viewBox="0 0 760 360" role="img" aria-label="Dot plots of AUROC by group"></svg></div>
+    <p style="font-size:13.5px;color:var(--muted);margin:8px 0 0">Gap intervals for deprivation (six levels) are biased upward: the largest-minus-smallest gap grows with noise. Treat them as rough.</p>
+  </div>
+  <h3>Who gets missed, before and after choosing the threshold properly</h3>
+  <p>The plan fixed the threshold at 0.5 in advance, which missed about half of at-risk students. A threshold chosen on the training data (to flag 80% of at-risk training students) was added afterwards, labelled as post hoc.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">Share of at-risk students the model misses</div><div class="chart-sub">Gradient-boosted trees, later run. Lines that converge mean the gap closed.</div></div>
+      <div class="seg" role="group" aria-label="Cutoff day"><button data-sl="14" aria-pressed="true">Day 14</button><button data-sl="28" aria-pressed="false">Day 28</button></div>
+    </div>
+    <div class="chart"><svg id="slopeSvg" viewBox="0 0 760 340" role="img" aria-label="Slope charts of miss rates by gender and age at two thresholds"></svg></div>
+    <div class="legend"><span><span class="key" style="background:var(--s1)"></span>Women / under 35</span><span><span class="key" style="background:var(--s2)"></span>Men / 35 and over</span></div>
+  </div>
+  <div class="callout warm reveal"><p id="slopeNote"></p></div>
+</section>
+
+<!-- THRESHOLD -->
+<section id="threshold">
+  <div class="kicker">Try it</div>
+  <h2>Move the threshold yourself</h2>
+  <p class="intro">Anyone below the threshold is flagged as at risk. Drag the line: flag more students and fewer at-risk ones are missed, but more students who would have passed get flagged too. Watch the two age groups: the gap between them never closes.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">Predicted chance of passing, day 14, all test students</div><div class="chart-sub">Students who passed above the line, students who failed or withdrew below. Shaded: flagged.</div></div>
+      <div class="controls"><button class="snap" data-snap="0.5">0.50 · planned</button><button class="snap" data-snap="chosen" id="snapChosen">chosen on training data</button></div>
+    </div>
+    <div class="legend"><span><span class="dotkey" style="background:var(--s1);border-radius:3px"></span>Passed</span><span><span class="dotkey" style="background:var(--s2);border-radius:3px"></span>Failed or withdrew</span></div>
+    <div class="chart"><svg id="histSvg" viewBox="0 0 760 300" role="img" aria-label="Mirrored histogram of predicted pass probability with a movable threshold"></svg></div>
+    <label for="tSlider" style="font-size:14px;color:var(--ink2)">Threshold: flag students whose predicted chance of passing is below <b id="tVal" style="color:var(--ink)">0.50</b></label>
+    <input type="range" id="tSlider" min="0.05" max="0.95" step="0.01" value="0.5">
+    <div class="readouts">
+      <div class="ro"><div class="k">Students flagged</div><div class="v" id="roFlag">–</div></div>
+      <div class="ro"><div class="k">At-risk missed</div><div class="v" id="roMiss">–</div></div>
+      <div class="ro"><div class="k"><span class="key" style="background:var(--s1)"></span>Missed, under 35</div><div class="v" id="roY">–</div></div>
+      <div class="ro"><div class="k"><span class="key" style="background:var(--s2)"></span>Missed, 35+</div><div class="v" id="roO">–</div></div>
+      <div class="ro"><div class="k">Passing students flagged</div><div class="v" id="roFp">–</div></div>
+    </div>
+    <div class="chart" style="margin-top:18px"><svg id="curveSvg" viewBox="0 0 760 240" role="img" aria-label="Share of at-risk students missed by threshold, by age"></svg></div>
+    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Values at the slider's 0.01 steps; the threshold chosen on training data was <span id="chosenExact"></span>.</p>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section id="method">
+  <div class="kicker">Method</div>
+  <h2>Two ways to test the same model</h2>
+  <p class="intro">Six Open University modules ran in both 2013 and 2014. The difference between the two tests is who ends up in the test set. The questions, splits, models and metrics were committed to Git before the data was downloaded; every later change is in the <a href="https://github.com/1sakshm/oulad-early-warning/blob/main/ANALYSIS_PLAN.md#deviation-log">deviation log</a>.</p>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">Who is trained on, and who is tested</div><div class="chart-sub" id="splitSub"></div></div>
+      <div class="seg" role="group" aria-label="Split type"><button id="btnRandom" aria-pressed="false">Random split</button><button id="btnLater" aria-pressed="true">Later run</button></div>
+    </div>
+    <div class="chart diagram"><svg id="splitSvg" viewBox="0 0 760 330" role="img" aria-label="Diagram of the two splits"></svg></div>
+    <div class="legend">
+      <span><span class="dotkey" style="background:var(--s1)"></span>Enrolment in a 2013 run</span>
+      <span><span class="dotkey" style="background:var(--s2)"></span>Enrolment in a 2014 run</span>
+      <span><span class="dotkey" style="border:2px solid var(--muted)"></span>Student already seen in 2013, removed from the test</span>
+    </div>
+  </div>
+  <h3>From seven tables to one prediction</h3>
+  <p>Everything the model sees is dated before the cutoff day. Hover a box for details.</p>
+  <div class="card reveal"><div class="chart diagram"><svg id="pipeSvg" viewBox="0 0 760 360" role="img" aria-label="Pipeline from the seven OULAD tables to features, four models and the metrics"></svg></div></div>
+  <h3>Only what is known on the cutoff day</h3>
+  <div class="card reveal">
+    <div class="chart-head">
+      <div><div class="chart-title">A course run, from the model's point of view</div><div class="chart-sub" id="tlSub"></div></div>
+      <div class="seg" role="group" aria-label="Cutoff day"><button data-tl="14" aria-pressed="true">Day 14</button><button data-tl="28" aria-pressed="false">Day 28</button></div>
+    </div>
+    <div class="chart diagram"><svg id="tlSvg" viewBox="0 0 760 210" role="img" aria-label="Timeline of a course presentation with the cutoff day"></svg></div>
+  </div>
+</section>
+
+<!-- LIMITS -->
+<section id="limits">
+  <div class="kicker">Limits</div>
+  <h2>What this does not show</h2>
+  <div class="limits">
+    <div class="card limit reveal"><h4>One institution, one year apart</h4><p>The Open University in 2013 and 2014, the same modules. A different university or a longer gap could drop much more.</p></div>
+    <div class="card limit reveal"><h4>Clicks are not causes</h4><p>Older at-risk students click more early on. That describes the data; it does not say why they fail or leave.</p></div>
+    <div class="card limit reveal"><h4>Post hoc pieces are labelled</h4><p>The trained threshold, the click curves, feature importance and per-module accuracy were added after the planned results.</p></div>
+    <div class="card limit reveal"><h4>Biased gap intervals</h4><p>A gap is the largest minus the smallest group, so noise always inflates it, most of all for six deprivation levels.</p></div>
+    <div class="card limit reveal"><h4>Withdrawal counts as at risk</h4><p>Some students withdraw for reasons a click log cannot show: work, illness, family.</p></div>
+    <div class="card limit reveal"><h4>Data from a mirror</h4><p>The Open University link now returns 404; the data came from the UCI repository copy, checksummed.</p></div>
+  </div>
+</section>
+
+<section id="reproduce">
+  <div class="kicker">Reproduce</div>
+  <h2>Run it yourself</h2>
+  <ol class="steps-list">
+    <li>Clone the repository and install the pinned requirements (PyTorch from the CPU index).</li>
+    <li>Download OULAD, put the seven CSV files in <code>data/raw/</code>, and check them against <code>data/SHA256SUMS.txt</code>.</li>
+    <li>Run these from <code>src/</code>. The full run takes about 15 minutes on a laptop CPU.</li>
+  </ol>
+  <pre class="code"><button class="copy" data-copy="cmds">Copy</button><code id="cmds">python -m oulad.features    # feature tables for days 14 and 28
+python -m oulad.run         # all models, splits and bootstrap intervals
+python -m oulad.report      # results/RESULTS.md and figures
+python -m oulad.threshold   # post hoc threshold analysis
+python -m oulad.describe    # descriptive numbers for this website</code></pre>
+  <h3>Cite the data</h3>
+  <p style="color:var(--ink2)">Kuzilek, J., Hlosta, M. and Zdrahal, Z. (2017). Open University Learning Analytics dataset. <i>Scientific Data</i>, 4, 170171. CC BY 4.0.</p>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Saksham Sharma · 2026 · <a href="https://github.com/1sakshm/oulad-early-warning">github.com/1sakshm/oulad-early-warning</a></span>
+    <span>Code MIT · Data CC BY 4.0</span>
+  </div>
+</footer>
+
+<div id="tip" role="tooltip"></div>
